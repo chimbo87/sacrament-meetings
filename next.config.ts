@@ -11,12 +11,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Optional: If you want to suppress the workspace root warning
-  experimental: {
-    turbopack: {
-      root: process.cwd(),
-    },
-  },
+  // Suppress the workspace root warning
+  serverExternalPackages: [],
 };
 
 export default nextConfig;
