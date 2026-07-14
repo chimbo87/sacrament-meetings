@@ -47,7 +47,7 @@ export default function MeetingDetailPage() {
 
     // Cleanup function (optional)
     return () => {
-      // Any cleanup if needed
+   
     };
   }, [id]); // Dependency array ensures effect runs when id changes
 
