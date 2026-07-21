@@ -9,7 +9,35 @@ interface MeetingDetailProps {
 
 export default function MeetingDetail({ meeting, isPrintMode = false }: MeetingDetailProps) {
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString + 'T00:00:00');
+    // Handle both 'YYYY-MM-DD' and ISO strings with timezone
+    let dateStr = dateString;
+    
+    // If it's an ISO string with timezone, extract just the date part
+    if (dateString.includes('T')) {
+      dateStr = dateString.split('T')[0];
+    }
+    
+    // Parse the date parts directly to avoid timezone issues
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0]);
+      const month = parseInt(parts[1]) - 1; // Month is 0-indexed
+      const day = parseInt(parts[2]);
+      const date = new Date(year, month, day);
+      
+      return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+    
+    // Fallback: try to parse the original string
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return dateString; // Return original if all else fails
+    }
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',

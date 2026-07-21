@@ -23,7 +23,8 @@ export async function GET(
       );
     }
 
-    const meeting = getMeetingById(id);
+    // Await the database call
+    const meeting = await getMeetingById(id);
 
     if (!meeting) {
       return NextResponse.json(

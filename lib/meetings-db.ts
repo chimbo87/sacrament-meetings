@@ -1,110 +1,73 @@
-import { SacramentMeeting } from './types';
+import { neon } from '@neondatabase/serverless';
+import { SacramentMeeting, MeetingType, Hymn, SpeakerItem, WardBusinessItem } from './types';
 
-// Sample data with at least 5 meetings
-const meetings: SacramentMeeting[] = [
-  {
-    id: 1,
-    date: '2026-07-06',
-    meetingType: 'regular',
-    presiding: 'President Smith',
-    conducting: 'Brother Johnson',
-    announcements: ['Ward temple trip next Saturday', 'Combined Relief Society and Priesthood meeting'],
-    openingHymn: { number: 2, title: 'The Spirit of God' },
-    openingPrayer: 'Sister Davis',
-    wardBusiness: [
-      { description: 'Sustain new Sunday School teacher' },
-      { description: 'Release and sustain new missionaries' }
-    ],
-    stakeBusiness: false,
-    sacramentHymn: { number: 185, title: 'Reverently and Meekly Now' },
-    speakers: [
-      { name: 'Brother Thompson', topic: 'Faith in Christ', type: 'speaker' },
-      { name: 'Sister Martinez', topic: 'Service', type: 'speaker' }
-    ],
-    closingHymn: { number: 226, title: 'Improve the Shining Moments' },
-    closingPrayer: 'Brother Williams'
-  },
-  {
-    id: 2,
-    date: '2026-07-13',
-    meetingType: 'testimony',
-    presiding: 'President Smith',
-    conducting: 'Brother Johnson',
-    announcements: ['Combined youth activity Friday', 'Bishop\'s youth interviews next week'],
-    openingHymn: { number: 31, title: 'O God, Our Help in Ages Past' },
-    openingPrayer: 'Sister Anderson',
-    wardBusiness: [],
-    stakeBusiness: false,
-    sacramentHymn: { number: 187, title: 'God Loved Us, So He Sent His Son' },
-    speakers: [
-      { name: 'Testimony Meeting', topic: 'Open testimony sharing', type: 'speaker' }
-    ],
-    closingHymn: { number: 165, title: 'Abide with Me; Tis Eventide' },
-    closingPrayer: 'Brother Miller'
-  },
-  {
-    id: 3,
-    date: '2026-07-20',
-    meetingType: 'stake',
-    presiding: 'President Davis',
-    conducting: 'President Davis',
-    announcements: ['Stake conference next month', 'Stake youth dance this Saturday'],
-    openingHymn: { number: 10, title: 'Come, Let Us Anew' },
-    openingPrayer: 'Brother Roberts',
-    wardBusiness: [],
-    stakeBusiness: true,
-    sacramentHymn: { number: 193, title: 'I Stand All Amazed' },
-    speakers: [
-      { name: 'Stake President Davis', topic: 'Temple Covenants', type: 'speaker' },
-      { name: 'Area Seventy', topic: 'The Work of Salvation', type: 'speaker' }
-    ],
-    closingHymn: { number: 101, title: 'Guide Me to Thee' },
-    closingPrayer: 'Sister Clark'
-  },
-  {
-    id: 4,
-    date: '2026-07-27',
-    meetingType: 'regular',
-    presiding: 'President Smith',
-    conducting: 'Brother Thompson',
-    announcements: ['Ward picnic August 1st', 'Primary program rehearsals start'],
-    openingHymn: { number: 46, title: 'Lead, Kindly Light' },
-    openingPrayer: 'Brother Peterson',
-    wardBusiness: [
-      { description: 'Approval of budget for ward activities' }
-    ],
-    stakeBusiness: false,
-    sacramentHymn: { number: 178, title: 'O Lamb of God' },
-    speakers: [
-      { name: 'Sister Nelson', topic: 'Faith and Families', type: 'speaker' },
-      { name: 'Special Musical Number', topic: 'Children\'s Choir', type: 'musical-number' }
-    ],
-    closingHymn: { number: 229, title: 'Today, While the Sun Shines' },
-    closingPrayer: 'Sister White'
-  },
-  {
-    id: 5,
-    date: '2026-08-03',
-    meetingType: 'general',
-    presiding: 'President Smith',
-    conducting: 'Bishop Smith',
-    announcements: ['General Conference review', 'New member welcoming'],
-    openingHymn: { number: 15, title: 'I Know That My Redeemer Lives' },
-    openingPrayer: 'Brother Adams',
-    wardBusiness: [],
-    stakeBusiness: false,
-    sacramentHymn: { number: 173, title: 'While of These Emblems' },
-    speakers: [
-      { name: 'Sister Evans', topic: 'General Conference Highlights', type: 'speaker' },
-      { name: 'Brother Brown', topic: 'Applying Conference Teachings', type: 'speaker' }
-    ],
-    closingHymn: { number: 198, title: 'That Easter Morn' },
-    closingPrayer: 'Sister Taylor'
+// Get the database URL from environment variables
+const sql = neon(process.env.DATABASE_URL!);
+
+// Helper function to convert database row to SacramentMeeting type
+function rowToMeeting(row: Record<string, unknown>): SacramentMeeting {
+  return {
+    id: row.id as number,
+    date: row.date as string,
+    meetingType: row.meeting_type as MeetingType,
+    presiding: row.presiding as string,
+    conducting: row.conducting as string,
+    announcements: (row.announcements as string[]) || [],
+    openingHymn: row.opening_hymn as Hymn,
+    openingPrayer: row.opening_prayer as string,
+    wardBusiness: (row.ward_business as WardBusinessItem[]) || [],
+    stakeBusiness: row.stake_business as boolean,
+    sacramentHymn: row.sacrament_hymn as Hymn,
+    speakers: (row.speakers as SpeakerItem[]) || [],
+    closingHymn: row.closing_hymn as Hymn,
+    closingPrayer: row.closing_prayer as string
+  };
+}
+
+// Get all meetings with optional date filter
+export async function getMeetings(date?: string): Promise<SacramentMeeting[]> {
+  try {
+    let query = 'SELECT * FROM meetings';
+    const params: (string | number)[] = [];
+    
+    if (date) {
+      query += ' WHERE date = $1';
+      params.push(date);
+    }
+    
+    query += ' ORDER BY date DESC';
+    
+    const rows = await sql.query(query, params);
+    return rows.map(rowToMeeting);
+  } catch (error) {
+    console.error('Error fetching meetings:', error);
+    throw new Error('Failed to fetch meetings from database');
   }
-];
+}
 
-// Helper function to find most recent Sunday
-function getMostRecentSunday(): string {
+// Get a single meeting by ID
+export async function getMeetingById(id: number): Promise<SacramentMeeting | undefined> {
+  try {
+    const rows = await sql.query('SELECT * FROM meetings WHERE id = $1', [id]);
+    
+    if (rows.length === 0) {
+      return undefined;
+    }
+    
+    return rowToMeeting(rows[0]);
+  } catch (error) {
+    console.error('Error fetching meeting by ID:', error);
+    throw new Error('Failed to fetch meeting from database');
+  }
+}
+
+// Get meetings by date (for the current meeting redirect)
+export async function getMeetingsByDate(date: string): Promise<SacramentMeeting[]> {
+  return getMeetings(date);
+}
+
+// Get the most recent Sunday
+export function getMostRecentSunday(): string {
   const today = new Date();
   const day = today.getDay(); // 0 = Sunday
   const diff = day; // Days to subtract to get to Sunday
@@ -113,19 +76,37 @@ function getMostRecentSunday(): string {
   return sunday.toISOString().split('T')[0];
 }
 
-export function getMeetings(): SacramentMeeting[] {
-  return meetings;
-}
-
-export function getMeetingById(id: number): SacramentMeeting | undefined {
-  return meetings.find(meeting => meeting.id === id);
-}
-
-export function getCurrentSundayMeeting(): SacramentMeeting | undefined {
+// Get current Sunday's meeting
+export async function getCurrentSundayMeeting(): Promise<SacramentMeeting | undefined> {
   const currentSunday = getMostRecentSunday();
-  return meetings.find(meeting => meeting.date === currentSunday);
+  const meetings = await getMeetingsByDate(currentSunday);
+  return meetings.length > 0 ? meetings[0] : undefined;
 }
 
-export function getMeetingsByDate(date: string): SacramentMeeting[] {
-  return meetings.filter(meeting => meeting.date === date);
+// --- MUTATION FUNCTIONS (stubs for Week 04) ---
+
+export async function addMeeting(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  meeting: Omit<SacramentMeeting, 'id'>
+): Promise<SacramentMeeting> {
+  // This will be implemented in Week 04 when forms are built
+  throw new Error('addMeeting not implemented yet');
+}
+
+export async function updateMeeting(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  id: number,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  meeting: Partial<SacramentMeeting>
+): Promise<SacramentMeeting> {
+  // This will be implemented in Week 04 when forms are built
+  throw new Error('updateMeeting not implemented yet');
+}
+
+export async function deleteMeeting(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  id: number
+): Promise<void> {
+  // This will be implemented in Week 04 when forms are built
+  throw new Error('deleteMeeting not implemented yet');
 }

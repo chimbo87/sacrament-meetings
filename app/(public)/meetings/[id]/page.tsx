@@ -14,12 +14,15 @@ export default function MeetingDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Define the fetch function inside the effect
-    const fetchMeeting = async (meetingId: string) => {
+    const fetchMeeting = async () => {
+      if (!id) {
+        setError('No meeting ID provided');
+        setLoading(false);
+        return;
+      }
+
       try {
-        // Clean the ID
-        const cleanId = meetingId.replace(/\/$/, '').trim();
-        
+        const cleanId = id.replace(/\/$/, '').trim();
         const response = await fetch(`/api/meetings/${cleanId}`);
         
         if (!response.ok) {
@@ -37,19 +40,8 @@ export default function MeetingDetailPage() {
       }
     };
 
-    // Only fetch if we have a valid id
-    if (id) {
-      fetchMeeting(id);
-    } else {
-      setError('No meeting ID provided');
-      setLoading(false);
-    }
-
-    // Cleanup function (optional)
-    return () => {
-   
-    };
-  }, [id]); // Dependency array ensures effect runs when id changes
+    fetchMeeting();
+  }, [id]);
 
   if (loading) {
     return (
