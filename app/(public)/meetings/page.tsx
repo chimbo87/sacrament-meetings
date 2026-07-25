@@ -17,42 +17,47 @@ export default function MeetingsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   
   const ITEMS_PER_PAGE = 5;
 
-  useEffect(() => {
-    const fetchMeetings = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (query) params.set('query', query);
-        params.set('page', page.toString());
-        params.set('limit', ITEMS_PER_PAGE.toString());
-        
-        const response = await fetch(`/api/meetings?${params.toString()}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch meetings');
-        }
-        const data = await response.json();
-        
-        if (Array.isArray(data)) {
-          setMeetings(data);
-          setTotalMeetings(data.length);
-          setTotalPages(Math.ceil(data.length / ITEMS_PER_PAGE));
-        } else {
-          setMeetings(data.meetings || []);
-          setTotalMeetings(data.total || 0);
-          setTotalPages(data.totalPages || 1);
-        }
-        setLoading(false);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-        setLoading(false);
+  const fetchMeetings = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (query) params.set('query', query);
+      params.set('page', page.toString());
+      params.set('limit', ITEMS_PER_PAGE.toString());
+      
+      const response = await fetch(`/api/meetings?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch meetings');
       }
-    };
+      const data = await response.json();
+      
+      if (Array.isArray(data)) {
+        setMeetings(data);
+        setTotalMeetings(data.length);
+        setTotalPages(Math.ceil(data.length / ITEMS_PER_PAGE));
+      } else {
+        setMeetings(data.meetings || []);
+        setTotalMeetings(data.total || 0);
+        setTotalPages(data.totalPages || 1);
+      }
+      setLoading(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchMeetings();
-  }, [query, page]);
+  }, [query, page, refreshKey]);
+
+  const handleDelete = () => {
+    setRefreshKey(prev => prev + 1);
+  };
 
   if (loading) {
     return (
@@ -82,7 +87,7 @@ export default function MeetingsPage() {
       
       <div className="grid grid-cols-1 gap-4">
         {meetings.map((meeting) => (
-          <MeetingCard key={meeting.id} meeting={meeting} />
+          <MeetingCard key={meeting.id} meeting={meeting} onDelete={handleDelete} />
         ))}
       </div>
       
