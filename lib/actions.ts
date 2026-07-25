@@ -7,7 +7,11 @@ import { neon } from '@neondatabase/serverless';
 import { SacramentMeeting, MeetingType } from './types';
 
 // Initialize database connection
-const sql = neon(process.env.DATABASE_URL!);
+const sql = neon(process.env.DATABASE_URL!, {
+  connectionTimeout: 30,
+  idleTimeout: 30,
+  max: 10,
+});
 
 // Zod schema for meeting validation
 const MeetingFormSchema = z.object({
@@ -143,13 +147,26 @@ export async function createMeeting(
     `;
 
     revalidatePath('/meetings');
-    redirect('/meetings');
   } catch (error) {
     console.error('Error creating meeting:', error);
+    
+    // Check if it's a unique constraint violation (date already exists)
+    if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
+      return {
+        message: 'A meeting already exists on this date. Please choose a different date.',
+        errors: {
+          date: ['A meeting already exists on this date. Please choose a different date.'],
+        },
+      };
+    }
+    
     return {
       message: 'Failed to create meeting. Please try again.',
     };
   }
+  
+  // Redirect after successful creation
+  redirect('/meetings');
 }
 
 // UPDATE MEETING
@@ -193,13 +210,26 @@ export async function updateMeeting(
     `;
 
     revalidatePath('/meetings');
-    redirect('/meetings');
   } catch (error) {
     console.error('Error updating meeting:', error);
+    
+    // Check if it's a unique constraint violation (date already exists)
+    if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
+      return {
+        message: 'A meeting already exists on this date. Please choose a different date.',
+        errors: {
+          date: ['A meeting already exists on this date. Please choose a different date.'],
+        },
+      };
+    }
+    
     return {
       message: 'Failed to update meeting. Please try again.',
     };
   }
+  
+  // Redirect after successful update
+  redirect('/meetings');
 }
 
 // DELETE MEETING

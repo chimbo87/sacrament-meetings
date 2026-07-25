@@ -6,25 +6,20 @@ import { useParams } from 'next/navigation';
 import { updateMeeting, MeetingFormState } from '@/lib/actions';
 import { SacramentMeeting } from '@/lib/types';
 
-interface EditMeetingPageProps {
-  params: {
-    id: string;
-  };
-}
-
 const initialState: MeetingFormState = {
   message: '',
   errors: {},
 };
 
-// This would normally be fetched from the server
-// For now, we'll use a client-side fetch
-export default function EditMeetingPage({ params }: EditMeetingPageProps) {
+export default function EditMeetingPage() {
+  // In Next.js 16+, useParams() already returns the resolved params
+  const params = useParams();
+  const id = params?.id as string;
+  
   const [meeting, setMeeting] = useState<SacramentMeeting | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const { id } = params;
   const meetingId = parseInt(id, 10);
   
   const [state, formAction, isPending] = useActionState(
@@ -35,6 +30,12 @@ export default function EditMeetingPage({ params }: EditMeetingPageProps) {
   // Fetch meeting data on mount
   useEffect(() => {
     const fetchMeeting = async () => {
+      if (!id || isNaN(meetingId)) {
+        setError('Invalid meeting ID');
+        setLoading(false);
+        return;
+      }
+      
       try {
         const response = await fetch(`/api/meetings/${id}`);
         if (!response.ok) {
@@ -50,7 +51,7 @@ export default function EditMeetingPage({ params }: EditMeetingPageProps) {
     };
     
     fetchMeeting();
-  }, [id]);
+  }, [id, meetingId]);
 
   if (loading) {
     return (
@@ -64,7 +65,7 @@ export default function EditMeetingPage({ params }: EditMeetingPageProps) {
     return (
       <div className="max-w-2xl mx-auto py-12 px-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
-          <p className="text-red-700">Meeting not found or error loading.</p>
+          <p className="text-red-700">{error || 'Meeting not found'}</p>
           <Link href="/meetings" className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
             Back to Meetings
           </Link>
