@@ -1,24 +1,49 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function NavLinks() {
   const pathname = usePathname();
+  const router = useRouter();
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch session on mount and when route changes
   useEffect(() => {
-    // Check session on client side
-    fetch('/api/auth/session')
-      .then(res => res.json())
-      .then(data => {
-        setSession(data);
+    const checkSession = async () => {
+      try {
+        const res = await fetch('/api/auth/session');
+        if (res.ok) {
+          const data = await res.json();
+          setSession(data);
+        } else {
+          setSession(null);
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+        setSession(null);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+      }
+    };
+
+    checkSession();
+  }, [pathname]); // Re-fetch when route changes
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      if (res.ok) {
+        setSession(null);
+        router.push('/');
+        router.refresh();
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   const links = [
     { href: '/', label: 'Home' },
@@ -70,12 +95,12 @@ export default function NavLinks() {
                   </Link>
                 );
               })}
-              <Link
-                href="/api/auth/logout"
+              <button
+                onClick={handleLogout}
                 className="px-3 py-2 rounded-md text-sm font-medium text-red-700 hover:bg-red-100 transition-colors"
               >
                 Sign Out
-              </Link>
+              </button>
             </>
           )}
           

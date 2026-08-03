@@ -30,7 +30,8 @@ export default function LoginPage() {
       router.push('/meetings');
       router.refresh();
     } catch {
-      setError('Something went wrong. Please try again.');
+      // The redirect from the server action will cause a catch
+      // We want to ignore this and let the redirect happen
       setLoading(false);
     }
   };
