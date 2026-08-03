@@ -2,11 +2,23 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 
 export default function NavLinks() {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check session on client side
+    fetch('/api/auth/session')
+      .then(res => res.json())
+      .then(data => {
+        setSession(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   const links = [
     { href: '/', label: 'Home' },
@@ -40,7 +52,7 @@ export default function NavLinks() {
           })}
           
           {/* Admin links - only show when logged in */}
-          {session && (
+          {session && !loading && (
             <>
               {adminLinks.map((link) => {
                 const isActive = pathname === link.href;
@@ -58,9 +70,8 @@ export default function NavLinks() {
                   </Link>
                 );
               })}
-              {/* Sign out link in nav (optional, since we already have it in admin layout) */}
               <Link
-                href="/api/auth/signout"
+                href="/api/auth/logout"
                 className="px-3 py-2 rounded-md text-sm font-medium text-red-700 hover:bg-red-100 transition-colors"
               >
                 Sign Out
@@ -69,7 +80,7 @@ export default function NavLinks() {
           )}
           
           {/* Show Login link when not logged in */}
-          {!session && (
+          {!session && !loading && (
             <Link
               href="/login"
               className="px-3 py-2 rounded-md text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors"

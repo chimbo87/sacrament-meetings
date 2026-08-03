@@ -4,7 +4,6 @@ import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import NavLinks from '@/components/NavLinks';
-import Providers from './providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -13,12 +12,7 @@ export const metadata: Metadata = {
     default: 'Sacramento Ward - Sacrament Meeting Planner',
     template: '%s | Sacramento Ward'
   },
-  description: 'Plan and manage sacrament meeting agendas for Sacramento Ward. View, create, and edit meetings with ease.',
-  keywords: ['sacrament meeting', 'ward', 'church', 'planner', 'agenda', 'LDS', 'Mormon'],
-  authors: [{ name: 'Sacramento Ward' }],
-  creator: 'Sacramento Ward',
-  publisher: 'Sacramento Ward',
-  robots: 'index, follow',
+  description: 'Plan and manage sacrament meeting agendas for Sacramento Ward.',
   openGraph: {
     title: 'Sacramento Ward - Sacrament Meeting Planner',
     description: 'Plan and manage sacrament meeting agendas for Sacramento Ward.',
@@ -26,7 +20,7 @@ export const metadata: Metadata = {
     siteName: 'Sacramento Ward Meeting Planner',
     images: [
       {
-        url: 'https://sacrament-meetings.vercel.app/og-image.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Sacramento Ward - Sacrament Meeting Planner',
@@ -34,12 +28,6 @@ export const metadata: Metadata = {
     ],
     locale: 'en_US',
     type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Sacramento Ward - Sacrament Meeting Planner',
-    description: 'Plan and manage sacrament meeting agendas for Sacramento Ward.',
-    images: ['https://sacrament-meetings.vercel.app/og-image.png'],
   },
 };
 
@@ -51,14 +39,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} flex flex-col min-h-screen`}>
-        <Providers>
-          <Header />
-          <NavLinks />
-          <main className="flex-grow container-custom py-8">
-            {children}
-          </main>
-          <Footer />
-        </Providers>
+        <Header />
+        <NavLinks />
+        <main className="flex-grow container-custom py-8">
+          {children}
+        </main>
+        <Footer />
       </body>
     </html>
   );

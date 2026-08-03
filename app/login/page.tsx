@@ -1,36 +1,32 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { login } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
-
+      const formData = new FormData(e.currentTarget);
+      const result = await login(formData);
+      
       if (result?.error) {
-        setError('Invalid email or password');
+        setError(result.error);
         setLoading(false);
         return;
       }
-
-      // Redirect to admin meetings page on success
+      
+      // If login is successful, the server action redirects
+      // But we'll also handle it here just in case
       router.push('/meetings');
       router.refresh();
     } catch {
@@ -61,8 +57,7 @@ export default function LoginPage() {
             <input
               type="email"
               id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
               required
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               placeholder="admin@example.com"
@@ -76,8 +71,7 @@ export default function LoginPage() {
             <input
               type="password"
               id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
               required
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               placeholder="••••••••"
