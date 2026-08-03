@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { neon } from '@neondatabase/serverless';
-import { SacramentMeeting, MeetingType } from './types';
+import { MeetingType } from './types';
 
 // Initialize database connection
 const sql = neon(process.env.DATABASE_URL!, {
