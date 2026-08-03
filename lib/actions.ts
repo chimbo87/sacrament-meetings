@@ -6,12 +6,8 @@ import { redirect } from 'next/navigation';
 import { neon } from '@neondatabase/serverless';
 import { MeetingType } from './types';
 
-// Initialize database connection
-const sql = neon(process.env.DATABASE_URL!, {
-  connectionTimeout: 30,
-  idleTimeout: 30,
-  max: 10,
-});
+// Initialize database connection - simplified
+const sql = neon(process.env.DATABASE_URL!);
 
 // Zod schema for meeting validation
 const MeetingFormSchema = z.object({
