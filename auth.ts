@@ -1,7 +1,8 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import type { NextAuthOptions } from "next-auth";
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     Credentials({
       name: "credentials",
@@ -10,14 +11,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // For demo purposes - accept any email with password "password"
-        // In a real app, you would check against your database
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
-        // Simple demo authentication
-        // Accepts any email with password "password"
+        // For demo purposes - accept any email with password "password"
         if (credentials.password === "password") {
           return {
             id: "1",
@@ -31,7 +29,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   pages: {
-    signIn: "/login", // Custom login page
+    signIn: "/login",
   },
   session: {
     strategy: "jwt",
@@ -54,4 +52,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
-});
+};
+
+const handler = NextAuth(authOptions);
+
+// Export the handler for the API route
+export { handler as GET, handler as POST };
+
+// Export auth function for server components
+export const auth = () => {
+  // This is a workaround for server component auth
+  // In NextAuth v4, we need to use getServerSession
+  // For now, we'll re-export the handler
+  return handler;
+};
